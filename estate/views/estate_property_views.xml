@@ -1,0 +1,347 @@
+<odoo>
+    <!-- Custom List/Tree for Real Estate-->
+    <!--<record id="estate_view_list" model="ir.ui.view">
+        <field name="name">estate.view.list</field>
+        <field name="model">estate.property</field>
+        <field name="arch" type="xml">
+            <list string="Real Estate Properties" decoration-success="state == 'offer_received' or state == 'offer_accepted'" decoration-bf="state == 'offer_accepted'" decoration-muted="state == 'sold'" > 
+                <field name="name" string="Title" />
+                <field name="property_type_id" string="Property Type"/>
+                <field name="property_tag_ids" string="Tags" widget="many2many_tags" /> Odoo's widget will render the actual tag names as labels in the list view instead of just showing the count like "1 record"
+                <field name="postcode" string="Postcode"/>
+                <field name="bedrooms" string="Bedrooms"/>
+                <field name="living_area" string="Living Area (sqm)"/>
+                <field name="expected_price" string="Expected Price"/>
+                <field name="selling_price" string="Selling Price"/>
+                <field name="date_availability" string="Available From" optional="hide" />
+                <field name="state" string="State"/>
+                <field name="facades" string="Facades"/>
+                <field name="garage" string="Garage"/>
+                <field name="garden" string="Garden"/>
+                <field name="garden_area" string="Garden Area (sqm)"/>
+                <field name="garden_orientation" string="Garden Orientation"/> 
+            </list>
+        </field>
+    </record>-->
+    <record id="estate_view_kanban" model="ir.ui.view">
+        <field name="name">estate.property.kanban</field>
+        <field name="model">estate.property</field>
+        <field name="arch" type="xml"> <!--<kanban class="o_kanban_example"> -->
+            <kanban default_group_by="property_type_id"
+                group_create="false"
+                group_delete="false"
+                groups_draggable="false"
+                records_draggable="false"> 
+                <!-- create="false" Prevents new rec. records_draggable="false" Prevents users from dragging individual cards.
+                    groups_draggable="false" → Prevents users from dragging entire groups.
+                    group_create="false" & group_delete="false" Stops users from manually creating or deleting groups.-->
+                <!-- include fields used in the template -->
+                <!--<field name="property_type_id"/>-->
+                <field name="state" />
+                <field name="property_tag_ids" /> <!-- This is required for the widget to work -->
+                <!-- <field name="tag_colors_data"/> -->
+                <template>
+                    <t t-name="card"> <!--'kanban-box' is deprecated, define a 'card' template instead -->
+                        <div class="oe_kanban_global_click o_kanban_record"><!-- o_kanban_record: This class is used for styling and structuring the kanban card. It helps define the layout and appearance of the card within the kanban view -->
+                            
+                            <strong t-att-style="record.state.raw_value == 'offer_received' ? 'color: green;' : record.state.raw_value == 'offer_accepted' ? 'color: orange;' : record.state.raw_value == 'sold' ? 'color: grey;': '' ">
+                                <field name="name"/>
+                            </strong>
+                            <!--</div> -->
+                            <div>
+                                <span class="text-muted" >Expected Price:</span>
+                                <field name="expected_price" />
+                            </div>
+                            <div t-if="record.state.raw_value == 'offer_accepted'">
+                                <span class="text-muted">Selling Price:</span>
+                                <field name="selling_price"/>
+                            </div>
+                            <div t-if="record.state.raw_value == 'offer_received'">
+                                <span class="text-muted">Best Offer:</span>
+                                <field name="best_offerPrice" />
+                            </div>
+                            <div>
+                               <field name="property_tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            </div>
+                           <!-- <div t-if="record.property_tag_ids.raw_value">
+                                <t t-foreach="record.property_tag_ids.raw_value" t-as="tag" t-key="tag.id">
+                                    <span t-attf-class="badge o_tag_color_#{tag.color}"><t t-esc="tag.display_name"/></span>
+                                </t>
+                            </div> -->
+                        </div>
+                    </t>
+                </template>
+            </kanban>
+        </field>
+    </record>
+
+
+<!-- Custom Search for Real Estate-->
+    <!--By default criteria are combined with an implicit AND, meaning every criterion needs to be satisfied for a record to match a domain. The logical operators & (AND), | (OR) and ! (NOT) can be used to explicitly combine criteria. They are used in prefix position (the operator is inserted before its arguments rather than between). For instance, to select products “which are services OR have a unit price which is NOT between 1000 and 2000”:['|',
+    ('product_type', '=', 'service'),
+    '!', '&',
+        ('unit_price', '>=', 1000),
+        ('unit_price', '<', 2000)]-->
+    <record id="estate_view_property_search" model="ir.ui.view">
+        <field name="name">estate.view.property.search</field>
+        <field name="model">estate.property</field>
+        <field name="arch" type="xml">
+            <search string="Custom Search">
+                <field name="name" string="Title"  />
+                <filter name="available" string="Available" domain="[('state', 'in', ['new', 'offer_received'])]" help="Show only available props"/> 
+                <field name="property_type_id" string="Property Type"/>
+                <field name="property_tag_ids" string="Tags"/>
+                <field name="postcode"/>
+                <field name="expected_price"/>
+                <field name="bedrooms"/>
+                <field name="living_area" filter_domain="[('living_area', '>=', self)]"/>
+                <field name="facades"/>
+                <separator/>
+                    <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                    <group expand="1" string="Group By">
+                        <filter string="postcode" name="group_by_postcode" context="{'group_by':'postcode'}"/>
+                    </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Custom Form for Real Estate-->
+    <record id="estate_property_view_form" model="ir.ui.view">
+        <field name="name">estate.property.view.form</field>
+        <field name="model">estate.property</field>
+        <field name="arch" type="xml">
+            <form string="Real Estate Property" >
+            <header>
+                <button name="action_sold_prop" type="object" string="SOLD" invisible="state == 'sold' or state == 'cancelled'"/>
+                <button name="action_cancel_prop" type="object" string="CANCEL" invisible="state == 'sold' or state == 'cancelled'"/>
+            <!--In the begining we created an action that was linked to a menu. You may be wondering if it is possible to link an action to a button. One way to do it is: <button type="action" name="(test.test_model_action)" string="My Action"/> We use type="action" and we refer to the external identifier in the name.-->
+            <field name="state" widget="statusbar" statusbar_visible="new,offer_received,offer_accepted,sold"/>
+            </header>
+                <sheet> <!-- Creates a structured form layout using <sheet> -->
+                    <group>
+                        <group>
+                            <field name="name" string=""/>
+                            <field name="state" string="State"/>
+                            <field name="property_type_id" options="{'no_create': True, 'no_open': True}" string="Property Type"/>
+                            <field name="property_tag_ids" options="{'color_field': 'color'}" widget="many2many_tags" />
+                            <!-- widget="many2many_tags": This tells Odoo to render the field using the "tags" widget — where each related record appears as a colored tag. -->
+                            <field name="postcode"/>
+                            <field name="date_availability" string="Available From"/>
+                        </group>
+                        <group>
+                            <field name="expected_price"/> 
+                            <field name="best_offerPrice" string='Best Offer'/>
+                            <field name="selling_price"/>
+                        </group>
+                        <notebook>
+                            <page string="Description">
+                                <group>
+                                    <field name="description" string='Description' />
+                                    <field name="bedrooms" string='Bedrooms'/>
+                                    <field name="living_area" string='Living Area (sqm)'/>
+                                    <field name="facades" string='Facades'/>
+                                    <field name="garage" string='Garage'/>
+                                    <field name="garden" string='Garden' />
+                                    <field name="garden_area" string='Garden Area (sqm)' invisible="garden == False "/>
+                                    <field name="garden_orientation" string='Garden Orientation' invisible="garden == False "/>
+                                    <field name="totalArea" string='Total Area (sqm):'/>
+                                </group>
+                            </page>
+                            <page string="Offers">
+                                <group> 
+                                    <field name="property_offer_ids" string='' readonly="state in ['offer_accepted', 'sold', 'canceled']" />
+                                </group>
+                            </page>
+                            <page string="Other Info">
+                                <group> 
+                                    <field name="user_id" string='Salesman' />
+                                    <field name="buyer_id" string='Buyer' />
+                                </group>
+                            </page>
+                        </notebook>
+                    </group>
+                </sheet>
+                <!--<footer>
+                    Custom buttons for saving and cancelling 
+                    <button name="action_save" string="Save" type="object" class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel" type="object" class="btn-secondary"/>
+                </footer>-->
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to Display Views for Real Estate (Search, Tree, and Form) --> 
+     <record id="estate_model_action" model="ir.actions.act_window">
+        <field name="name">Real Estate action</field>
+        <field name="res_model">estate.property</field>
+        <field name="view_mode">kanban,list,form</field> <!-- 'kanban' must come first -->
+        <!--<field name="view_id" ref="estate_view_list"/> Linking/forcing the custom Tree View. Optional: forces tree as the first view -->
+        <field name="search_view_id" ref="estate_view_property_search"/> <!-- Linking/forcing the custom Search View  -->
+        <!--<field name="context">{'search_default_available': True}</field> OJO this line wasn't required for the default available filter to work. When the corresponding search view loads, if you have filters defined with these names like 'available', they will automatically be applied  -->
+        <!--<field name="view_id" ref="estate_view_kanban"/>  Optional, if you want to enforce a default view -->
+    </record>
+
+                                                <!-- Section for Estate OFFERS: --> 
+    <!-- Custom Tree for Estate OFFERS -->
+    <record id="estate_offer_view_list" model="ir.ui.view">
+        <field name="name">estate.offer.view.list</field>
+        <field name="model">estate.property.offer</field>  
+        <field name="arch" type="xml">
+            <list string="Estate Offer Properties" editable="bottom" decoration-danger="status =='refused'" decoration-success="status == 'accepted' " > <!-- "tree" it's considered a legacy alias for "list."--> 
+                <field name="price" string="Price" />
+                <field name="property_type_id"/>
+
+                <field name="partner_id" string="Partner" />
+                <field name="validity" string="Validity" />
+                <field name="date_deadline" string="Deadline" />
+                <!--<button name="action_accept_offer" type="object" icon="fa-check" 
+                invisible="status == 'accepted' or status == 'refused' "/>
+                <button name="action_refuse_offer" type="object" icon="fa-times" 
+                invisible="status == 'accepted' or status == 'refused' "/>--> 
+                <button name="action_accept_offer" type="object" icon="fa-check"/>
+                <button name="action_refuse_offer" type="object" icon="fa-times" />
+                <!--<field name="status" string="Status" />--> 
+            </list>
+        </field>
+    </record>
+
+    <!-- Custom Form for Estate OFFERS -->
+    <record id="estate_offer_property_view_form" model="ir.ui.view">
+        <field name="name">estate.offer.property.view.form</field>
+        <field name="model">estate.property.offer</field>
+        <field name="arch" type="xml"> 
+            <form string="Estate Property Offer" >
+                <sheet>  <!--<sheet>  Creates a structured form layout using <sheet> --> 
+                    <group> <!--<group> this tag is required to display the field --> 
+                        <group>
+                            <field name="price" string="Price" />
+                            <field name="partner_id" string="Partner" />
+                            <field name="validity" string="Validity" />
+                            <field name="date_deadline" string="Deadline" />
+                            <field name="status" string="Status" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Estate OFFERS -->
+    <!--By moving the definition of the action_view_offers_by_property_type action to appear before the view that uses it, you ensure that the external ID is already registered in Odoo's system when the form view is being processed. --> 
+    <record id="action_view_offers_by_property_type" model="ir.actions.act_window">
+        <field name="name">Property Offers</field>
+        <field name="res_model">estate.property.offer</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('property_type_id', '=', active_id)]</field> <!--A domain that defines property_type_id as equal to the active_id the current record. The active_id is retrieved from the estate.property.type model when this code executes, as it is the active record from which the button is clicked.
+) --> 
+    </record>
+
+                                            <!-- Section for Estate TYPE: --> 
+    <record id="estate_type_property_view_list" model="ir.ui.view">
+        <field name="name">estate.type.property.view.list</field>
+        <field name="model">estate.property.type</field>  
+        <field name="arch" type="xml">
+            <list string="Estate Types"> <!-- "tree" it's considered a legacy alias for "list."--> 
+                <field name="sequence" widget="handle"/>
+                <field name="name" string="Type:"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="estate_type_property_view_form" model="ir.ui.view">
+    <field name="name">estate.type.property.view.form</field>
+    <field name="model">estate.property.type</field>
+    <field name="arch" type="xml"> 
+        <form string="Estate Property Type" >
+            <header>
+                <button name="%(action_view_offers_by_property_type)d"
+                        type="action"
+                        class="oe_stat_button"
+                        icon="fa-handshake-o">
+                    <field name="offer_count" widget="statinfo" string="Offers"/>
+                </button>
+            </header>
+
+            <sheet> 
+                <group> 
+                    <group>
+                        <field name="name" string="Type of Property:"/>
+                    </group>
+                </group>
+                <notebook>
+                    <page string="Properties">
+                        <field name="property_ids">
+                            <list>
+                                <field name="name" string="Tile"/>
+                                <field name="expected_price" string="Expected Price"/>
+                                <field name="state" string="State"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </sheet>
+        </form>
+    </field>
+    </record>
+
+    <record id="estate_type_model_action" model="ir.actions.act_window">
+        <field name="name">Real Estate Type action</field>
+        <field name="res_model">estate.property.type</field>
+        <field name="view_mode">list,form</field> 
+    </record>
+
+                                    <!-- Section for Estate TAGS: --> 
+    <!-- Action to Display Views for Estate Type (Search, Tree, and Form) --> 
+    <record id="estate_tag_model_action" model="ir.actions.act_window">
+        <field name="name">Real Estate Tag action</field>
+        <field name="res_model">estate.property.tag</field>
+        <field name="view_mode">list,form</field> 
+    </record>
+
+    <record id="estate_view_tag_list" model="ir.ui.view">
+    <field name="name">estate.view.tag.list</field>
+    <field name="model">estate.property.tag</field>
+    <field name="arch" type="xml">
+        <list editable="bottom">
+            <field name="name"/>
+            <!-- Add other fields if necessary -->
+        </list>
+    </field>
+    </record>
+
+
+    <!--<record id="view_res_users_form_inherit" model="ir.ui.view">
+            <field name="name">res.users.form.inherit</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+
+                    <group>
+                        <field name="property_ids" > 
+                            <list>
+                                <field name="name"/>
+                                <field name="state"/>
+                                <field name="expected_price"/>
+                            </list>
+                        </field>
+                    </group>
+                </xpath>
+            </field>
+        </record>-->
+</odoo>
+
+<!--The <record> tag defines a record in Odoo. The id attribute specifies the identifier (defined by the developer) for this record. 
+This xml header element is optional: <?xml 
+This code snippet demonstrates the basic setup for a default view (built-in view_mode linked to a model an action) :
+<record id="estate_model_action" model="ir.actions.act_window">
+        <field name="name">Real Estate action</field>
+        <field name="res_model">estate.property</field>
+        <field name="view_mode">list,form</field>
+    </record> 
+While "tree" isn't deprecated, it's considered a legacy alias for "list."
+
+<button name="action_print_to_console"
+                                type="object"
+                                string="Print Variable"
+                                class="btn-primary"/>--> 

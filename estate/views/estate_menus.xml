@@ -1,0 +1,61 @@
+<odoo>
+    <menuitem id="menu_estate_root" name="Real Estate">
+        <menuitem id="menu_estate_properties" name="Properties">
+            <menuitem id="menu_estate_property_action" name="Manage Properties" action="estate_model_action"/>
+            <menuitem id="menu_estate_type_property_action" name="Property Types" action="estate_type_model_action" sequence="20"/> <!-- New menu for Property Types -->
+            <menuitem id="menu_estate_tag_property_action" name="Property Tags" action="estate_tag_model_action" sequence="30"/>
+        </menuitem>
+    </menuitem>
+</odoo>
+
+<!--<menuitem id="menu_estate_root" name="Real Estate"/>
+
+    <menuitem id="menu_estate_properties" name="Properties" parent="menu_estate_root"/>
+
+    <menuitem id="menu_estate_property_action" name="Manage Properties RUSH"
+            parent="menu_estate_properties" action="estate_model_action"/>
+
+    <menuitem id="menu_estate_type_property_action" name="Property Types"
+            parent="menu_estate_properties" action="estate_type_model_action"/>-->
+
+
+    <!--<menuitem id="menu_estate_type_root" name="Real Estate Types">
+        <menuitem id="menu_estate_type_properties" name="Properties">
+            <menuitem id="menu_estate_type_property_action" name="Property Types" action="estate_type_model_action"/>
+        </menuitem>
+    </menuitem>-->
+
+<!-- estate_model_action (original Action)-->
+
+<!-- custom_estate_model_action
+<?xml version="1.0"?>
+<odoo>
+    Top Level Menu 
+    <menuitem id="menu_estate_root" name="Real Estate" sequence="1"/>
+
+    Second Level Menu 
+    <menuitem id="menu_estate_properties" name="Properties" parent="menu_estate_root" sequence="1"/>
+
+    Third Level Menu with Action 
+    <menuitem id="menu_estate_property_action" name="Manage Properties" parent="menu_estate_properties" action="estate_model_action" sequence="1"/>
+</odoo>
+
+<menuitem id="menu_estate_root" name="Real Estate">
+    <menuitem id="menu_estate_properties" name="Properties">
+        <menuitem id="menu_estate_property_action" name="Manage Properties" action="estate_model_action"/>
+    </menuitem>
+</menuitem>
+
+Key Differences:
+Hierarchy Definition:
+The first declaration uses the parent attribute to explicitly define relationships.
+The second declaration uses nested structure to implicitly define hierarchy.
+
+Flexibility:
+The first approach allows more flexibility as menu items can be declared in any order and relationships can be established using parent.
+The second approach requires nesting to maintain relationships, limiting flexibility in defining or reorganizing menus.
+
+Parsing:
+The first declaration might suit systems designed to process flat menu structures with references.
+The second declaration could be easier to parse for systems that rely on direct nesting
+-->
