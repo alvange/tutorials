@@ -11,7 +11,7 @@ A double leading __underscore triggers name mangling, meaning Py internally modi
 Python renames __name to _ClassName__name.'''
 
 class EstateProperty(models.Model): # inherits from Model which provides create(), read(), write() and unlink().
-    _name = "estate.property" # This is the technical name of the Odoo model (metadata).
+    _name = "estate.property" # This is the tech name of the Odoo model (metadata: module.model).
     _description = "Real Estate Property" # This is the technical description of the Odoo model (metadata).
     _order = "id desc"
 

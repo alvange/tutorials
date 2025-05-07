@@ -20,7 +20,3 @@
     'application': True,  # the module appears when the “Apps” filter is on.
     'license': 'LGPL-3',
 }
-#data': [ OJO The data section should only list XML or CSV files for records — never .py files.
-#        'security/ir.model.access.csv',
-#        'views/estate_property_views.xml',  
-#        'views/estate_menus.xml', 
